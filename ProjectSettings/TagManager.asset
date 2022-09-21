@@ -7,6 +7,9 @@ TagManager:
   - border
   - border left
   - border right
+  - obstacle
+  - DiggerGremlin
+  - JumperGremlin
   layers:
   - Default
   - TransparentFX

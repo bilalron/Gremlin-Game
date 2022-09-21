@@ -22,9 +22,13 @@ public class Gremlins : MonoBehaviour
 
     private float jumpTimer = 0;
 
-    private bool isDigging = false;
+    static public bool isDigging = false;
 
     private float diggingTimer = 2;
+
+    public float horizontalVelocity; 
+
+    public Animator animator;
 
     #endregion
 
@@ -34,8 +38,9 @@ public class Gremlins : MonoBehaviour
 
     void Update()
     {
-        Vector2 pos1 = transform.position;
+        StartCoroutine(CalculateHorizontalVelocity());
 
+        Vector2 pos1 = transform.position;
         
         gremlin_Ability(pos1);
 
@@ -45,14 +50,18 @@ public class Gremlins : MonoBehaviour
             isDigging = false;
             diggingTimer = 2;
         }
-        if(!isDigging) { 
-            if (direction){
+        if (!isDigging)
+        {
+            if (direction)
+            {
                 pos1.x += speed * Time.deltaTime;
             }
-            else {
+            else
+            {
                 pos1.x -= speed * Time.deltaTime;
             }
         }
+
 
         int index;
 
@@ -75,10 +84,34 @@ public class Gremlins : MonoBehaviour
             }
         }
 
-
-        
-
         transform.position = pos1;
+
+        #region Animator Speed
+
+        IEnumerator CalculateHorizontalVelocity()
+        {
+            Vector3 lastPosition = transform.position;
+            yield return new WaitForFixedUpdate();
+            horizontalVelocity = (lastPosition - transform.position).magnitude / Time.deltaTime;
+
+        }
+
+        animator.SetFloat("AnimateSpeed", Mathf.Abs(horizontalVelocity));
+
+        #endregion
+
+        #region Animator Direction
+        if (direction == false)
+        {
+            animator.SetFloat("ReverseDirection", 1);
+        }
+        if (direction == true)
+        {
+            animator.SetFloat("ReverseDirection", -1);
+        }
+
+        #endregion 
+
     }
 
     #region utility_functions
@@ -87,6 +120,13 @@ public class Gremlins : MonoBehaviour
             Debug.Log("hit");
             direction = !direction;
         }
+
+        if (col.gameObject.tag == "obstacle")
+        {
+            Debug.Log("hit");
+            direction = !direction;
+        }
+
     }
     
     void gremlin_Ability(Vector2 pos){
