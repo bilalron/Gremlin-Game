@@ -22,22 +22,50 @@ public class Gremlins : MonoBehaviour
 
     private float jumpTimer = 0;
 
-    private bool isDigging = false;
+    static public bool isDigging = false;
 
     private float diggingTimer = 2;
 
+    public float horizontalVelocity; 
+
+    public Animator animator;
+    
+    public bool is_Clicked = false;
+
+    private float click_Timer = 0;
+
     #endregion
+
+    void OnMouseDown() {
+        if(click_Timer == 0) {
+            Debug.Log("Click");
+            is_Clicked = true;
+            click_Timer = 3;
+        }
+    }
 
     void Start(){
         rb = GetComponent<Rigidbody2D>();
     }
 
+
     void Update()
     {
-        Vector2 pos1 = transform.position;
+        
+        click_Timer = Math.Max(0, click_Timer - Time.deltaTime);
 
+        if (click_Timer == 0) {
+            is_Clicked = false;
+        }
+
+
+
+        StartCoroutine(CalculateHorizontalVelocity());
+
+        Vector2 pos1 = transform.position;
         
         gremlin_Ability(pos1);
+        
 
         diggingTimer = Math.Max(0, diggingTimer - Time.deltaTime);
 
@@ -45,14 +73,17 @@ public class Gremlins : MonoBehaviour
             isDigging = false;
             diggingTimer = 2;
         }
-        if(!isDigging) { 
-            if (direction){
-                pos1.x += speed * Time.deltaTime;
-            }
-            else {
-                pos1.x -= speed * Time.deltaTime;
-            }
+
+        if (direction)
+        {
+            pos1.x += speed * Time.deltaTime;
         }
+        else
+        {
+            pos1.x -= speed * Time.deltaTime;
+        }
+        
+
 
         int index;
 
@@ -75,23 +106,54 @@ public class Gremlins : MonoBehaviour
             }
         }
 
-
-        
-
         transform.position = pos1;
+
+        #region Animator Speed
+
+        IEnumerator CalculateHorizontalVelocity()
+        {
+            Vector3 lastPosition = transform.position;
+            yield return new WaitForFixedUpdate();
+            horizontalVelocity = (lastPosition - transform.position).magnitude / Time.deltaTime;
+
+        }
+
+        animator.SetFloat("AnimateSpeed", Mathf.Abs(horizontalVelocity));
+
+        #endregion
+
+        #region Animator Direction
+        if (direction == false)
+        {
+            animator.SetFloat("ReverseDirection", 1);
+        }
+        if (direction == true)
+        {
+            animator.SetFloat("ReverseDirection", -1);
+        }
+
+        #endregion 
+
     }
+
 
     #region utility_functions
     void OnCollisionEnter2D(Collision2D col){
         if(col.gameObject.name == "border"){
-            Debug.Log("hit");
+
             direction = !direction;
         }
+
+        if (col.gameObject.tag == "obstacle")
+        {
+            direction = !direction;
+        }
+
     }
     
     void gremlin_Ability(Vector2 pos){
         if(gremlin_type == "Digger") {
-            if(Input.GetKeyDown(KeyCode.Space)) {
+            if(Input.GetKeyDown(KeyCode.Space) && is_Clicked) {
                 isDigging = true;
                 pos.y -= speed * Time.deltaTime;
                 Debug.Log("Digging");
@@ -100,13 +162,13 @@ public class Gremlins : MonoBehaviour
         }
 
         else if (gremlin_type == "Jumper"){
-            Debug.Log(jumpTimer);
-            if (Input.GetKeyDown(KeyCode.Space) && jumpTimer == 0){
+            if (Input.GetKeyDown(KeyCode.Space) && jumpTimer == 0 && is_Clicked){
                 rb.AddForce(Vector2.up * jumpAmount, ForceMode2D.Impulse);
                 jumpTimer = 1;
             }
             jumpTimer = Math.Max(jumpTimer - Time.deltaTime, 0);
         }
     }
+
     #endregion
 }
