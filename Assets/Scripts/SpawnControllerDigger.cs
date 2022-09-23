@@ -14,23 +14,36 @@ public class SpawnControllerDigger : MonoBehaviour
     [SerializeField]
     public float diggerCounter;
 
+    [SerializeField]
+    private GameObject SpawnPoint;
+
+    [SerializeField]
+    private bool SpawnAllowance = true;
+
+    [SerializeField]
+    public static float DiggerDeCounter;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(spawnPlayer(diggerInterval, diggerGremlin));
+        DiggerDeCounter = diggerCounter;
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        if (DialogBox.StartSpawning && SpawnAllowance)
+        {
+            StartCoroutine(spawnPlayer(diggerInterval, diggerGremlin));
+            SpawnAllowance = false;
+        }
     }
 
     private IEnumerator spawnPlayer(float interval, GameObject player)
     {
         yield return new WaitForSeconds(interval);
-        GameObject newPlayer = Instantiate(player, transform.position, Quaternion.identity);
+        GameObject newPlayer = Instantiate(player, SpawnPoint.transform.position, Quaternion.identity);
         diggerCounter -= 1;
 
         if (diggerCounter == 0)

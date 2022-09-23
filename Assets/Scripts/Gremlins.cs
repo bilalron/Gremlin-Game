@@ -18,7 +18,7 @@ public class Gremlins : MonoBehaviour
 
     public string gremlin_type;
     
-    private string[] gremlins = new string[]{"Default", "Digger", "Jumper"};
+    private string[] gremlins = new string[]{"Default", "Digger", "Jumper", "Stone"};
 
     private float jumpTimer = 0;
 
@@ -30,7 +30,36 @@ public class Gremlins : MonoBehaviour
 
     public Animator animator;
 
+    private int collisionCount;
+
+    private int CountOfDiggs;
+
+    public bool is_Clicked = false;
+
+    public static int gremlinDead;
+
+    [SerializeField]
+    public GameObject stoneGenerated;
+
+    [SerializeField]
+    public GameObject stoneGeneratedReverse;
+
+    [SerializeField]
+    public GameObject Arrow;
+
     #endregion
+
+    void OnMouseDown()
+    {
+        if (InGameController.click_Timer == 0)
+        {
+            Debug.Log("Click");
+            is_Clicked = true;
+            InGameController.click_Timer = 10;
+            Debug.Log(InGameController.click_Timer);
+            Arrow.SetActive(true);
+        }
+    }
 
     void Start(){
         rb = GetComponent<Rigidbody2D>();
@@ -38,6 +67,15 @@ public class Gremlins : MonoBehaviour
 
     void Update()
     {
+        InGameController.click_Timer = Math.Max(0, InGameController.click_Timer - Time.deltaTime);
+
+        if (InGameController.click_Timer == 0)
+        {
+            is_Clicked = false;
+            Arrow.SetActive(false);
+        }
+
+
         StartCoroutine(CalculateHorizontalVelocity());
 
         Vector2 pos1 = transform.position;
@@ -46,45 +84,39 @@ public class Gremlins : MonoBehaviour
 
         diggingTimer = Math.Max(0, diggingTimer - Time.deltaTime);
 
-        if(diggingTimer == 0) {
+        if (diggingTimer == 0) {
             isDigging = false;
             diggingTimer = 2;
         }
-        if (!isDigging)
+
+        if(direction)
         {
-            if (direction)
-            {
                 pos1.x += speed * Time.deltaTime;
-            }
-            else
-            {
+        }
+        else
+        {
                 pos1.x -= speed * Time.deltaTime;
-            }
+        }
+        
+
+        #region Dying Method
+        if (CountOfDiggs >= 1)
+        {
+            StartCoroutine(Death());
+
+            animator.SetFloat("Death", 1);
         }
 
-
-        int index;
-
-        if (Input.GetKeyDown(KeyCode.E)) {
-            index = Array.IndexOf(gremlins, gremlin_type);
-            if (index == gremlins.Length - 1) {
-                gremlin_type = gremlins[0];
-            }
-            else {
-                gremlin_type = gremlins[index + 1];
-            }
-        }
-        if (Input.GetKeyDown(KeyCode.Q)) {
-            index = Array.IndexOf(gremlins, gremlin_type);
-            if (index == 0) {
-                gremlin_type = gremlins[gremlins.Length - 1];
-            }
-            else {
-                gremlin_type = gremlins[index - 1];
-            }
+        IEnumerator Death()
+        {
+            yield return new WaitForSeconds(1);
+            Destroy(this.gameObject);
+            gremlinDead += 1;
         }
 
-        transform.position = pos1;
+            #endregion
+
+            transform.position = pos1;
 
         #region Animator Speed
 
@@ -112,6 +144,30 @@ public class Gremlins : MonoBehaviour
 
         #endregion 
 
+        #region Animator Dig
+        if (isDigging == true)
+        {
+            animator.SetFloat("Dig", 1);
+        }
+        if (isDigging == false)
+        {
+            animator.SetFloat("Dig", -1);
+        }
+
+        #endregion
+
+        #region Animator Jump
+        if(jumpTimer == 0)
+        {
+           animator.SetFloat("Jump", -1);
+        }
+        else
+        {
+           animator.SetFloat("Jump", 1);
+        }
+        
+        #endregion 
+
     }
 
     #region utility_functions
@@ -127,25 +183,63 @@ public class Gremlins : MonoBehaviour
             direction = !direction;
         }
 
+        collisionCount = 1;
+
+        if (col.gameObject.tag == "Ocean")
+        {
+            Destroy(this.gameObject);
+            gremlinDead += 1;
+        }
     }
-    
-    void gremlin_Ability(Vector2 pos){
-        if(gremlin_type == "Digger") {
-            if(Input.GetKeyDown(KeyCode.Space)) {
+
+    void OnCollisionExit2D(Collision2D col)
+    {
+        collisionCount = 0;
+    }
+
+    void gremlin_Ability(Vector2 pos) {
+        if (gremlin_type == "Digger")
+        {
+            if (Input.GetKeyDown(KeyCode.Space) && is_Clicked)
+            {
                 isDigging = true;
                 pos.y -= speed * Time.deltaTime;
                 Debug.Log("Digging");
+                CountOfDiggs += 1;
             }
             diggingTimer -= Time.deltaTime;
         }
 
-        else if (gremlin_type == "Jumper"){
+        else if (gremlin_type == "Jumper")
+        {
             Debug.Log(jumpTimer);
-            if (Input.GetKeyDown(KeyCode.Space) && jumpTimer == 0){
+            if (Input.GetKeyDown(KeyCode.Space) && jumpTimer == 0 && is_Clicked)
+            {
                 rb.AddForce(Vector2.up * jumpAmount, ForceMode2D.Impulse);
                 jumpTimer = 1;
             }
             jumpTimer = Math.Max(jumpTimer - Time.deltaTime, 0);
+        }
+
+        else if (gremlin_type == "Stone")
+        {
+            Debug.Log("stoneTimer");
+            if (Input.GetKeyDown(KeyCode.Space) && is_Clicked)
+            {
+                if (direction == true)
+                {
+                    Instantiate(stoneGenerated, transform.position, Quaternion.identity);
+                    Destroy(this.gameObject);
+                    gremlinDead += 1;
+                }
+
+                else if (direction == false)
+                {
+                    Instantiate(stoneGeneratedReverse, transform.position, Quaternion.identity);
+                    Destroy(this.gameObject);
+                    gremlinDead += 1;
+                }
+            }
         }
     }
     #endregion

@@ -34,6 +34,14 @@ public class GameManager : MonoBehaviour
      public void StartScreen(){
         SceneManager.LoadScene("StartScreen"); 
     }
+     public void PauseScreen()
+    {
+        SceneManager.LoadScene("PauseMenu");
+    }
+     public void EndApplication()
+    {
+        Application.Quit();
+    }
 
     #endregion
 }

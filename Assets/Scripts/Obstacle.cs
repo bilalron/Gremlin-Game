@@ -26,18 +26,16 @@ public class Obstacle : MonoBehaviour
             objectDigging = 1;
         }
 
-        TimeTrack -= Time.deltaTime;
-
-        if (TimeTrack > diggingTime)
+        if (Gremlins.isDigging == false)
         {
             objectDigging = 0;
         }
     }
 
     #region Destruction Function
-    void OnCollisionExit2D(Collision2D col)
+    void OnTriggerStay2D(Collider2D cother)
     {
-        if (col.gameObject.tag == "DiggerGremlin" && objectDigging == 1)
+        if (cother.gameObject.tag == "DiggerGremlin" && objectDigging == 1)
         {
             Debug.Log("DiggingObject");
             Destroy(this.gameObject);

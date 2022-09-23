@@ -7,6 +7,20 @@ public class GameController : MonoBehaviour
 { 
     public static GameController Instance = null;
 
+    #region Important Variables
+
+    [SerializeField]
+    public GameObject UIBoard;
+
+    [SerializeField]
+    public GameObject uiboardPoint;
+
+    [SerializeField]
+    public int UIBoardCounter = 0;
+
+    #endregion
+
+
     #region Unity_functions
 
     private void Awake(){
@@ -16,13 +30,13 @@ public class GameController : MonoBehaviour
         else if (Instance != this){
             Destroy(this.gameObject);
         }
-        DontDestroyOnLoad(this.gameObject);
     }
     #endregion
 
     #region Scene_transitions
 
     public void StartGame(){
+        Gremlins.gremlinDead = 0;
         SceneManager.LoadScene("MainMenu");
     }
      public void LoseGame(){
@@ -32,7 +46,31 @@ public class GameController : MonoBehaviour
         SceneManager.LoadScene("WinScene");
     }
      public void StartScreen(){
-        SceneManager.LoadScene("StartScreen"); 
+        SceneManager.LoadScene("StartScreen");
+    }
+
+    public void HowToPlay()
+    {
+        if (UIBoardCounter == 0)
+        {
+            Instantiate(UIBoard, uiboardPoint.transform.position, Quaternion.identity);
+            UIBoardCounter = 1;
+        }
+
+        else if (UIBoardCounter == 1)
+        {
+            Destroy(GameObject.FindWithTag("UIBoard"));
+            UIBoardCounter = 0;
+        }
+    }
+
+    public void PauseScreen()
+    {
+        SceneManager.LoadScene("PauseMenu");
+    }
+    public void EndApplication()
+    {
+        Application.Quit();
     }
 
     #endregion

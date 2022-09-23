@@ -10,6 +10,11 @@ TagManager:
   - obstacle
   - DiggerGremlin
   - JumperGremlin
+  - ground
+  - UIBoard
+  - GremlinBox
+  - StoneGremlin
+  - Ocean
   layers:
   - Default
   - TransparentFX
