@@ -29,6 +29,10 @@ public class Gremlins : MonoBehaviour
     public float horizontalVelocity; 
 
     public Animator animator;
+    
+    public bool is_Clicked = false;
+
+    private float click_Timer = 0;
 
     private int collisionCount;
 
@@ -65,6 +69,7 @@ public class Gremlins : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
+
     void Update()
     {
         InGameController.click_Timer = Math.Max(0, InGameController.click_Timer - Time.deltaTime);
@@ -81,6 +86,7 @@ public class Gremlins : MonoBehaviour
         Vector2 pos1 = transform.position;
         
         gremlin_Ability(pos1);
+        
 
         diggingTimer = Math.Max(0, diggingTimer - Time.deltaTime);
 
@@ -106,6 +112,12 @@ public class Gremlins : MonoBehaviour
 
             animator.SetFloat("Death", 1);
         }
+        else
+        {
+            pos1.x -= speed * Time.deltaTime;
+        }
+        
+
 
         IEnumerator Death()
         {
@@ -170,16 +182,16 @@ public class Gremlins : MonoBehaviour
 
     }
 
+
     #region utility_functions
     void OnCollisionEnter2D(Collision2D col){
         if(col.gameObject.name == "border"){
-            Debug.Log("hit");
+
             direction = !direction;
         }
 
         if (col.gameObject.tag == "obstacle")
         {
-            Debug.Log("hit");
             direction = !direction;
         }
 
@@ -242,5 +254,6 @@ public class Gremlins : MonoBehaviour
             }
         }
     }
+
     #endregion
 }
